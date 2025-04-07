@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "JobScraper.Console": {
+      "commandName": "Project",
+      "commandLineArgs": "export-jobs"
+    }
+  }
+}

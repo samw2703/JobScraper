@@ -1,9 +1,9 @@
 ﻿using JobScraper.Console.Data;
-using JobScraper.Console.Model;
 using Microsoft.EntityFrameworkCore;
 
 using var db = new AppDbContext();
 
+var dataFolder = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/JobSearch";
 // Create the database and schema if they don't exist
 db.Database.EnsureCreated();
 
@@ -18,16 +18,75 @@ if (command == "help")
     return;
 }
 
-if (command == "search-term")
+//if (command == "search-term")
+//{
+//    await HandleSearchTermCommand(args);
+//    return;
+//}
+
+//if (command == "area")
+//{
+//    await HandleAreaCommand(args);
+//    return;
+//}
+
+if (command == "import-jobs")
 {
-    await HandleSearchTermCommand(args);
+    await HandleImportJobsCommand();
     return;
 }
 
-if (command == "area")
+if (command == "export-jobs")
 {
-    await HandleAreaCommand(args);
+    await HandleExportJobsCommand(args);
     return;
+}
+
+if (command == "exclude-company")
+{
+    await HandleExcludeCompanyCommand(args);
+    return;
+}
+
+if (command == "mark-jobs")
+{
+    await HandleMarkJobsCommand(args);
+    return;
+}
+
+//exclude-company (advertiser, company)
+//mark-job
+
+HandleHelpCommand();
+
+
+
+
+
+
+async Task HandleMarkJobsCommand(string[] args)
+{
+    // ids, [Not Interested, Interested, Applied, CompanyIsADumbDumb, New]
+    throw new NotImplementedException();
+}
+
+async Task HandleExcludeCompanyCommand(string[] args)
+{
+    //advertiser and company
+    throw new NotImplementedException();
+}
+
+async Task HandleExportJobsCommand(string[] args)
+{
+    //export-new
+    //export-interested
+    //export-applied
+    await new JobExporter(db).ExportNew($"{dataFolder}/Exports");
+}
+
+async Task HandleImportJobsCommand()
+{
+    await new JobImporter(db).Import($"{dataFolder}/Imports");
 }
 
 void HandleHelpCommand()
@@ -41,74 +100,74 @@ void HandleHelpCommand()
     Console.WriteLine("area add <new area>");
 }
 
-async Task HandleAreaCommand(string[] args)
-{
-    var command = args[1].ToLower().Trim();
-    if (command == "list")
-    {
-        HandleAreaListCommandAsync();
-        return;
-    }
+//async Task HandleAreaCommand(string[] args)
+//{
+//    var command = args[1].ToLower().Trim();
+//    if (command == "list")
+//    {
+//        HandleAreaListCommandAsync();
+//        return;
+//    }
 
-    if (command == "add")
-    {
-        await HandleAreaAddCommand(args);
-        return;
-    }
-}
+//    if (command == "add")
+//    {
+//        await HandleAreaAddCommand(args);
+//        return;
+//    }
+//}
 
-async Task HandleAreaAddCommand(string[] args)
-{
-    var newArea = args[2].Trim();
+//async Task HandleAreaAddCommand(string[] args)
+//{
+//    var newArea = args[2].Trim();
 
-    if (string.IsNullOrEmpty(newArea) || areas.Any(x => x.Name.ToLower() == newArea.ToLower()))
-    {
-        Console.WriteLine("cannot save this area");
-        return;
-    }
+//    if (string.IsNullOrEmpty(newArea) || areas.Any(x => x.Name.ToLower() == newArea.ToLower()))
+//    {
+//        Console.WriteLine("cannot save this area");
+//        return;
+//    }
 
-    await db.AddAsync(Area.Create(newArea));
-    await db.SaveChangesAsync();
-}
+//    await db.AddAsync(Area.Create(newArea));
+//    await db.SaveChangesAsync();
+//}
 
-void HandleAreaListCommandAsync()
-{
-    foreach (var area in areas)
-        Console.WriteLine(area.Name);
-}
+//void HandleAreaListCommandAsync()
+//{
+//    foreach (var area in areas)
+//        Console.WriteLine(area.Name);
+//}
 
-async Task HandleSearchTermCommand(string[] args)
-{
-    var command = args[1].ToLower().Trim();
-    if (command == "list")
-    {
-        HandleSearchTermListCommand();
-        return;
-    }
+//async Task HandleSearchTermCommand(string[] args)
+//{
+//    var command = args[1].ToLower().Trim();
+//    if (command == "list")
+//    {
+//        HandleSearchTermListCommand();
+//        return;
+//    }
 
-    if (command == "add")
-    {
-        await HandleSearchTermAddCommandAsync(args);
-        return;
-    }
-}
+//    if (command == "add")
+//    {
+//        await HandleSearchTermAddCommandAsync(args);
+//        return;
+//    }
+//}
 
-async Task HandleSearchTermAddCommandAsync(string[] args)
-{
-    var newSearchTerm = args[2].Trim();
+//async Task HandleSearchTermAddCommandAsync(string[] args)
+//{
+//    var newSearchTerm = args[2].Trim();
 
-    if (string.IsNullOrEmpty(newSearchTerm) || searchTerms.Any(x => x.Value.ToLower() == newSearchTerm.ToLower()))
-    {
-        Console.WriteLine("cannot save this search term");
-        return;
-    }
+//    if (string.IsNullOrEmpty(newSearchTerm) || searchTerms.Any(x => x.Value.ToLower() == newSearchTerm.ToLower()))
+//    {
+//        Console.WriteLine("cannot save this search term");
+//        return;
+//    }
 
-    await db.AddAsync(SearchTerm.Create(newSearchTerm));
-    await db.SaveChangesAsync();
-}
+//    await db.AddAsync(SearchTerm.Create(newSearchTerm));
+//    await db.SaveChangesAsync();
+//}
 
-void HandleSearchTermListCommand()
-{
-    foreach (var searchTerm in searchTerms)
-        Console.WriteLine(searchTerm.Value);
-}
+//void HandleSearchTermListCommand()
+//{
+//    foreach (var searchTerm in searchTerms)
+//        Console.WriteLine(searchTerm.Value);
+//}
