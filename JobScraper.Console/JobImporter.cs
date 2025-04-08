@@ -19,11 +19,24 @@ public class JobImporter
         var existingJobs = await _dbContext.Jobs.ToListAsync();
 
         var newJobDtos = jobDtos.Where(x => !JobAlreadyExists(existingJobs, x)).ToList();
-        var newJobs = jobDtos.Select(Map);
+        var filteredJobDtos = await FilterOutExclusions(newJobDtos);
+
+        var newJobs = filteredJobDtos.Select(Map);
 
         await _dbContext.Jobs.AddRangeAsync(newJobs);
         await _dbContext.SaveChangesAsync();
     }
+
+    private async Task<List<JobImportDto>> FilterOutExclusions(List<JobImportDto> jobDtos)
+    {
+        var exclusions = await _dbContext.Exclusions.ToListAsync();
+
+        return jobDtos.Where(dto => ShouldExcludeJob(dto, exclusions)).ToList();
+    }
+
+    private bool ShouldExcludeJob(JobImportDto dto, List<Exclusion> exclusions)
+        => exclusions.Any(x => x.Advertiser.ToLower() == dto.Advertiser.ToLower()
+                && x.Company.ToLower() == dto.Company.ToLower());
 
     private List<JobImportDto> GetImportJobDtos(string importsFolder)
     {

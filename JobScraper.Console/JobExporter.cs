@@ -1,5 +1,7 @@
 ﻿using JobScraper.Console.Data;
 using JobScraper.Console.Model;
+using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 public class JobExporter
 {
@@ -10,16 +12,44 @@ public class JobExporter
         _dbContext = dbContext;
     }
 
-    public async Task ExportNew(string exportsFolder)
+    public async Task ExportAll(string exportsFolder)
     {
-        var newJobs = _dbContext.Jobs.Where(x => x.Status == JobStatus.New).ToList();
-        var csv = ToCsv(newJobs);
+        var jobs = await _dbContext.Jobs.ToListAsync();
+        var csv = ToCsv(jobs);
+        var filePath = CreateFilePath(exportsFolder, "all");
 
-        File.WriteAllText($"{exportsFolder}/new_{DateTime.Now:yyyy-MM-dd_HH-mm}.csv", csv);
+        File.WriteAllText(filePath, csv);
+
+        Launch(filePath);
+    } 
+
+    public async Task ExportForStatus(string exportsFolder, JobStatus jobStatus)
+    {
+        var jobs = await _dbContext.Jobs.Where(x => x.Status == jobStatus).ToListAsync();
+        var csv = ToCsv(jobs);
+        var filePath = CreateFilePath(exportsFolder, jobStatus);
+
+        File.WriteAllText(filePath, csv);
+
+        Launch(filePath);
+    }
+
+    private void Launch(string filePath)
+    {
+        var psi = new ProcessStartInfo
+        {
+            FileName = Path.GetFullPath(filePath),
+            UseShellExecute = true
+        };
+
+        Process.Start(psi);
     }
 
     private string CreateFilePath(string exportsFolder, JobStatus jobStatus)
-        => $"{exportsFolder}/new{jobStatus.ToString().ToLower()}_{DateTime.Now:yyyy-MM-dd_HH-mm}.csv";
+        => CreateFilePath(exportsFolder, jobStatus.ToString().ToLower());
+
+    private string CreateFilePath(string exportsFolder, string jobStatus)
+    => $"{exportsFolder}/new{jobStatus}_{DateTime.Now:yyyy-MM-dd_HH-mm}.csv";
 
     private string ToCsv(List<Job> jobs)
     {

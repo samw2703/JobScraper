@@ -1,9 +1,10 @@
 ﻿using JobScraper.Console.Data;
+using JobScraper.Console.Model;
 using Microsoft.EntityFrameworkCore;
 
-using var db = new AppDbContext();
-
 var dataFolder = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/JobSearch";
+
+using var db = new AppDbContext(dataFolder);
 // Create the database and schema if they don't exist
 db.Database.EnsureCreated();
 
@@ -17,18 +18,6 @@ if (command == "help")
     HandleHelpCommand();
     return;
 }
-
-//if (command == "search-term")
-//{
-//    await HandleSearchTermCommand(args);
-//    return;
-//}
-
-//if (command == "area")
-//{
-//    await HandleAreaCommand(args);
-//    return;
-//}
 
 if (command == "import-jobs")
 {
@@ -48,7 +37,7 @@ if (command == "exclude-company")
     return;
 }
 
-if (command == "mark-jobs")
+if (command == "update-status")
 {
     await HandleMarkJobsCommand(args);
     return;
@@ -66,22 +55,38 @@ HandleHelpCommand();
 
 async Task HandleMarkJobsCommand(string[] args)
 {
+    var jobIds = args[1].Split(',', StringSplitOptions.RemoveEmptyEntries)
+        .Select(x => Convert.ToInt32(x)).ToList();
+    var status = (JobStatus)Enum.Parse(typeof(JobStatus), args[2], true);
     // ids, [Not Interested, Interested, Applied, CompanyIsADumbDumb, New]
-    throw new NotImplementedException();
+    
+    await new JobStatusService(db).UpdateJobStatus(jobIds, status);
 }
 
 async Task HandleExcludeCompanyCommand(string[] args)
 {
-    //advertiser and company
-    throw new NotImplementedException();
+    var advertiser = args[1];
+    var company = args[2];
+    
+    await new ExclusionsService(db).AddExclusion(advertiser, company);
 }
 
 async Task HandleExportJobsCommand(string[] args)
 {
-    //export-new
-    //export-interested
-    //export-applied
-    await new JobExporter(db).ExportNew($"{dataFolder}/Exports");
+    var exporter = new JobExporter(db);
+    var exportPath = $"{dataFolder}/Exports";
+
+    var exportAll = args.Length == 1;
+
+    if (exportAll)
+    {
+        await exporter.ExportAll(exportPath);
+        return;
+    }
+
+    var status = (JobStatus)Enum.Parse(typeof(JobStatus), args[1], true);
+
+    await new JobExporter(db).ExportForStatus(exportPath, status);
 }
 
 async Task HandleImportJobsCommand()
@@ -91,83 +96,28 @@ async Task HandleImportJobsCommand()
 
 void HandleHelpCommand()
 {
-    Console.WriteLine("search-term list");
-    Console.WriteLine("search-term add <new search term>");
+    Console.WriteLine("import-jobs - Imports jobs that you have created using your script");
 
     Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine();
 
-    Console.WriteLine("area list");
-    Console.WriteLine("area add <new area>");
+    Console.WriteLine("export-jobs - Exports all jobs to a csv file");
+    Console.WriteLine();
+    Console.WriteLine("export-jobs [Status New|NotInterested|Interested|Applied|Offer|OfferAccepted|CompanyIsADumbDumb] - Exports with given status to a csv file");
+    Console.WriteLine("e.g. export-jobs New");
+
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine();
+
+    Console.WriteLine("exclude-company [advertiser] [company] - excludes a company(probably a recruiter) from search results for the given advertiser");
+    Console.WriteLine("e.g. exclude-company Indeed \"Hellish Recruiters\"");
+
+    Console.WriteLine();
+    Console.WriteLine();
+    Console.WriteLine();
+
+    Console.WriteLine("update-status [comma separated list of job ids(no spaces)] [job status]");
+    Console.WriteLine("update-status 1,2,15,7 NotInterested");
 }
-
-//async Task HandleAreaCommand(string[] args)
-//{
-//    var command = args[1].ToLower().Trim();
-//    if (command == "list")
-//    {
-//        HandleAreaListCommandAsync();
-//        return;
-//    }
-
-//    if (command == "add")
-//    {
-//        await HandleAreaAddCommand(args);
-//        return;
-//    }
-//}
-
-//async Task HandleAreaAddCommand(string[] args)
-//{
-//    var newArea = args[2].Trim();
-
-//    if (string.IsNullOrEmpty(newArea) || areas.Any(x => x.Name.ToLower() == newArea.ToLower()))
-//    {
-//        Console.WriteLine("cannot save this area");
-//        return;
-//    }
-
-//    await db.AddAsync(Area.Create(newArea));
-//    await db.SaveChangesAsync();
-//}
-
-//void HandleAreaListCommandAsync()
-//{
-//    foreach (var area in areas)
-//        Console.WriteLine(area.Name);
-//}
-
-//async Task HandleSearchTermCommand(string[] args)
-//{
-//    var command = args[1].ToLower().Trim();
-//    if (command == "list")
-//    {
-//        HandleSearchTermListCommand();
-//        return;
-//    }
-
-//    if (command == "add")
-//    {
-//        await HandleSearchTermAddCommandAsync(args);
-//        return;
-//    }
-//}
-
-//async Task HandleSearchTermAddCommandAsync(string[] args)
-//{
-//    var newSearchTerm = args[2].Trim();
-
-//    if (string.IsNullOrEmpty(newSearchTerm) || searchTerms.Any(x => x.Value.ToLower() == newSearchTerm.ToLower()))
-//    {
-//        Console.WriteLine("cannot save this search term");
-//        return;
-//    }
-
-//    await db.AddAsync(SearchTerm.Create(newSearchTerm));
-//    await db.SaveChangesAsync();
-//}
-
-//void HandleSearchTermListCommand()
-//{
-//    foreach (var searchTerm in searchTerms)
-//        Console.WriteLine(searchTerm.Value);
-//}

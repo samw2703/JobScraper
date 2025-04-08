@@ -6,10 +6,18 @@ namespace JobScraper.Console.Data;
 
 public class AppDbContext : DbContext
 {
+    private readonly string _dbPath;
+
+    public AppDbContext(string dataFolder)
+    {
+        _dbPath = $"{dataFolder}/Data/Jobs.db";
+    }
+
     public DbSet<SearchTerm> SearchTerms => Set<SearchTerm>();
     public DbSet<Area> Areas => Set<Area>();
     public DbSet<Job> Jobs => Set<Job>();
+    public DbSet<Exclusion> Exclusions => Set<Exclusion>();
 
     protected override void OnConfiguring(DbContextOptionsBuilder options)
-        => options.UseSqlite("Data Source=app.db");
+        => options.UseSqlite($"Data Source={_dbPath}");
 }
