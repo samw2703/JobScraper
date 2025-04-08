@@ -1,15 +1,11 @@
 ﻿using JobScraper.Console.Data;
 using JobScraper.Console.Model;
-using Microsoft.EntityFrameworkCore;
 
 var dataFolder = $"{Environment.GetFolderPath(Environment.SpecialFolder.Desktop)}/JobSearch";
 
 using var db = new AppDbContext(dataFolder);
 // Create the database and schema if they don't exist
 db.Database.EnsureCreated();
-
-var areas = await db.Areas.ToListAsync();
-var searchTerms = await db.SearchTerms.ToListAsync();
 
 var command = args[0].ToLower().Trim();
 
@@ -42,9 +38,6 @@ if (command == "update-status")
     await HandleMarkJobsCommand(args);
     return;
 }
-
-//exclude-company (advertiser, company)
-//mark-job
 
 HandleHelpCommand();
 
@@ -96,6 +89,7 @@ async Task HandleImportJobsCommand()
 
 void HandleHelpCommand()
 {
+    Console.WriteLine();
     Console.WriteLine("import-jobs - Imports jobs that you have created using your script");
 
     Console.WriteLine();
@@ -120,4 +114,5 @@ void HandleHelpCommand()
 
     Console.WriteLine("update-status [comma separated list of job ids(no spaces)] [job status]");
     Console.WriteLine("update-status 1,2,15,7 NotInterested");
+    Console.WriteLine();
 }

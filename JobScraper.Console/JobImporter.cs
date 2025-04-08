@@ -31,7 +31,7 @@ public class JobImporter
     {
         var exclusions = await _dbContext.Exclusions.ToListAsync();
 
-        return jobDtos.Where(dto => ShouldExcludeJob(dto, exclusions)).ToList();
+        return jobDtos.Where(dto => !ShouldExcludeJob(dto, exclusions)).ToList();
     }
 
     private bool ShouldExcludeJob(JobImportDto dto, List<Exclusion> exclusions)

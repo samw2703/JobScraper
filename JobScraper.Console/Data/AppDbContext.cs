@@ -13,8 +13,6 @@ public class AppDbContext : DbContext
         _dbPath = $"{dataFolder}/Data/Jobs.db";
     }
 
-    public DbSet<SearchTerm> SearchTerms => Set<SearchTerm>();
-    public DbSet<Area> Areas => Set<Area>();
     public DbSet<Job> Jobs => Set<Job>();
     public DbSet<Exclusion> Exclusions => Set<Exclusion>();
 
